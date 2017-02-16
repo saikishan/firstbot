@@ -2,7 +2,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var server = restify.createServer();
 //status tester
-server.listen(process.env.port||process.env.PORT||3978,function(){
+server.listen(process.env.port||process.env.PORT||1998,function(){
     console.log("%s listening to %s",server.name, server.url);
 });
 var connector = new builder.ChatConnector({
@@ -11,9 +11,24 @@ var connector = new builder.ChatConnector({
 });
 var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
-var disha = new builder.IntentDialog();
+
+var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/7bb640b9-6873-47d1-adc6-e2a675993578?subscription-key=aeca06be462d48eea65217dc45bf6595&verbose=true';
+var recognizer = new builder.LuisRecognizer(model);
+var disha = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog('/', disha);
 
+disha.matches('def_where',
+      function(session,args,next){
+    var person = builder.EntityRecognizer.findEntity(args.entities,'event','location');
+    if(!person){
+        session.send('VIT BHIMAVARM');
+    }
+    else{
+        session.send('vit bhimavarm');
+    }
+    
+  }
+);
 disha.onDefault([
      function (session,args,next) {
         if (!session.userData.name) {
